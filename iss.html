@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iss</title>
+    <style>
+        #map {
+            height: 100%;
+            position: unset !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+</body>
+<script async
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBoHUUfhjMwtodJJTNDatTk1XQH7oBcNgw&loading=async&callback=initMap">
+    </script>
+<script>
+    function initMap() {
+
+        let flightPlanCoordinates = []
+        var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 3,
+            center: new google.maps.LatLng(22.344, 114.048),
+            mapTypeId: google.maps.MapTypeId.HYBRID,
+            disableDefaultUI: true,
+            zoomControl: true,
+            scrollwheel: false,
+            scrollwheel: false,
+        })
+
+        let marker = new google.maps.Marker({
+            map: map,
+            position: new google.maps.LatLng(22.344, 114.048),
+            icon: {
+        url: 'https://cdn-icons-png.flaticon.com/512/1002/1002442.png',
+        scaledSize: new google.maps.Size(50, 50), // Resize the icon to 50x50 pixels
+        origin: new google.maps.Point(0, 0), // Origin of the image (0,0)
+        anchor: new google.maps.Point(25, 25) // Anchor the image at the center
+    }
+        })
+
+
+        setInterval(() => {
+            fetch('http://api.open-notify.org/iss-now.json')
+                .then((response) => {
+                    return response.json()
+                })
+                .then((data) => {
+                    console.log(data)
+                    let currposition = { lat: Number(data.iss_position.latitude), lng: Number(data.iss_position.longitude) }
+                    marker.setPosition(currposition)
+                    map.panTo(currposition)
+
+                    if (flightPlanCoordinates.length === 2)
+                        flightPlanCoordinates.shift();
+
+                    flightPlanCoordinates.push(currposition);
+
+                  flightPath =   new google.maps.Polyline({
+                        path: flightPlanCoordinates,
+                        geodesic: true,
+                        strokeColor: '#FF0000',
+                        strokeOpacity: 1.0,
+                        strokeWeight: 2
+                    });
+
+                    flightPath.setMap(map);
+
+
+
+
+                })
+                .catch((err) => {
+                    console.log(err)
+                })
+
+        }, 4000)
+
+
+
+
+    }
+
+</script>
+
+</html>
